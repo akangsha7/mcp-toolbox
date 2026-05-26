@@ -1,0 +1,20 @@
+{
+  "packages": [
+    {
+      "component": "mcp-toolbox",
+      "package": "toolbox-server",
+      "release-type": "node",
+      "versioning": "default",
+      "extra-files": [
+        "server.json",
+        "pypi/src/toolbox_server/__init__.py"
+      ],
+      "json-updates": [
+        {
+          "path": "server.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  ]
+}

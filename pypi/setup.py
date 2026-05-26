@@ -65,15 +65,8 @@ if os.path.exists(parent_license):
     shutil.copy2(parent_license, local_license)
 
 def download_binary():
-    version = os.environ.get("TOOLBOX_VERSION")
-    if not version:
-        ver = get_version()
-        version = f"v{ver}" if not ver.startswith("v") else ver
-
     os_part, arch_part = get_platform_details()
     bin_name = "toolbox.exe" if os_part == "windows" else "toolbox"
-
-    url = f"https://storage.googleapis.com/mcp-toolbox-for-databases/{version}/{os_part}/{arch_part}/{bin_name}"
     dest_dir = "src/toolbox_server/bin"
 
     if os.path.exists(dest_dir):
@@ -82,15 +75,30 @@ def download_binary():
 
     dest_path = os.path.join(dest_dir, bin_name)
 
-    print(f"Downloading {url} to {dest_path}")
-    try:
-        urllib.request.urlretrieve(url, dest_path)
-    except urllib.error.HTTPError as e:
-        print(f"ERROR: Failed to download {url}: {e.code} {e.reason}", file=sys.stderr)
-        raise SystemExit(f"Failed to download binary from {url}")
-    except Exception as e:
-        print(f"ERROR: {e}", file=sys.stderr)
-        raise SystemExit("Binary download failed.")
+    local_path = os.environ.get("TOOLBOX_BINARY_PATH")
+    if local_path:
+        print(f"Copying local binary from {local_path} to {dest_path}")
+        try:
+            shutil.copy2(local_path, dest_path)
+        except Exception as e:
+            print(f"ERROR: Failed to copy local binary from {local_path}: {e}", file=sys.stderr)
+            raise SystemExit(f"Failed to copy local binary from {local_path}")
+    else:
+        version = os.environ.get("TOOLBOX_VERSION")
+        if not version:
+            ver = get_version()
+            version = f"v{ver}" if not ver.startswith("v") else ver
+
+        url = f"https://storage.googleapis.com/mcp-toolbox-for-databases/{version}/{os_part}/{arch_part}/{bin_name}"
+        print(f"Downloading {url} to {dest_path}")
+        try:
+            urllib.request.urlretrieve(url, dest_path)
+        except urllib.error.HTTPError as e:
+            print(f"ERROR: Failed to download {url}: {e.code} {e.reason}", file=sys.stderr)
+            raise SystemExit(f"Failed to download binary from {url}")
+        except Exception as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            raise SystemExit("Binary download failed.")
 
     st = os.stat(dest_path)
     os.chmod(dest_path, st.st_mode | stat.S_IEXEC)
